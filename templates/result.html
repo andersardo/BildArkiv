@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Result - BildArkiv</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <style>
+        .img-container { position: relative; display: inline-block; }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <h2>Image Details</h2>
+    <a href="{{ url_for('gallery') }}" class="btn btn-link mb-3">View Gallery</a>
+    <div class="mb-4">
+        <strong>Date taken:</strong> {{ metadata.date_taken }}<br>
+        <strong>Place taken:</strong> {{ metadata.place_taken }}<br>
+        <strong>Description:</strong> {{ metadata.description }}<br>
+        <strong>File:</strong> {{ metadata.filename }}<br>
+        <strong>Uploaded at:</strong> {{ metadata.uploaded_at.strftime('%Y-%m-%d %H:%M') }}
+    </div>
+    <div class="img-container mb-3">
+        <img id="main-img" src="{{ url_for('uploaded_file', filename=metadata.filename) }}" class="img-fluid" alt="Uploaded image">
+        <canvas id="face-canvas" style="position:absolute; left:0; top:0; pointer-events:none;"></canvas>
+    </div>
+    <h5>Persons detected:</h5>
+    <ul>
+        {% for idx, name in metadata.persons.items() %}
+            <li>
+                {{ name }} (Face #{{ loop.index }})
+                {% if metadata.highlights and idx in metadata.highlights %}
+                    <span class="badge badge-success">Highlighted</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('home') }}" class="btn btn-primary mt-3">Upload another image</a>
+</div>
+<script>
+    window.onload = function() {
+        const faces = {{ metadata.faces|tojson }};
+        const persons = {{ metadata.persons|tojson }};
+        const highlights = {{ metadata.highlights|tojson }};
+        const img = document.getElementById('main-img');
+        const canvas = document.getElementById('face-canvas');
+        function drawRects() {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            faces.forEach(face => {
+                let [x, y, w, h] = face.region;
+                let scaleX = img.width / img.naturalWidth;
+                let scaleY = img.height / img.naturalHeight;
+                let idx = face.idx;
+                ctx.strokeStyle = (highlights && highlights.indexOf(idx) !== -1) ? '#28a745' : '#ff3333';
+                ctx.lineWidth = (highlights && highlights.indexOf(idx) !== -1) ? 4 : 2;
+                ctx.strokeRect(x * scaleX, y * scaleY, w * scaleX, h * scaleY);
+                let name = persons[idx] || "";
+                if (name) {
+                    ctx.font = "16px Arial";
+                    ctx.fillStyle = "rgba(255,255,255,0.8)";
+                    ctx.fillRect(x * scaleX, y * scaleY - 22, ctx.measureText(name).width + 12, 22);
+                    ctx.fillStyle = "#000";
+                    ctx.fillText(name, x * scaleX + 4, y * scaleY - 4);
+                }
+            });
+        }
+        img.onload = drawRects;
+        if (img.complete) drawRects();
+    };
+</script>
+</body>
+</html>

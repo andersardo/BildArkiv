@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BildArkiv Gallery</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <style>
+        .img-thumb {
+            max-width: 180px;
+            max-height: 150px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <h2>BildArkiv Gallery</h2>
+    <a href="{{ url_for('home') }}" class="btn btn-link mb-3">Upload New Image</a>
+    <a href="{{ url_for('search') }}" class="btn btn-link mb-3">Search</a>
+    <a href="{{ url_for('reset_db') }}" class="btn btn-danger mb-3" onclick="return confirm('Reset the entire database and delete all images?')">Reset Database</a>
+    <div class="row">
+        {% for img in images %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <a href="{{ url_for('result', img_id=img.id) }}">
+                        <img src="{{ img.thumb_url }}" class="card-img-top img-thumb" alt="Image thumbnail">
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ img.place_taken }} {% if img.date_taken %}({{ img.date_taken }}){% endif %}</h5>
+                        <p class="card-text">{{ img.description }}</p>
+                        <p class="mb-1"><b>Faces:</b> {{ img.faces_count }}</p>
+                        <p class="mb-1"><b>Persons:</b> {{ img.persons|join(', ') }}</p>
+                        <small class="text-muted">Uploaded: {{ img.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        <br>
+                        <a href="{{ url_for('result', img_id=img.id) }}" class="btn btn-sm btn-outline-primary mt-2">Details</a>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">No images uploaded yet.</div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+Flask==2.2.5
+Flask-SQLAlchemy==2.5.1
+Werkzeug==2.2.3
+opencv-python-headless==4.10.0.82
+gunicorn==21.2.0
